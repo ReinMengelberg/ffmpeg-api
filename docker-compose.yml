@@ -1,5 +1,5 @@
 services:
-  mp3-converter:
+  ffmpeg-api:
     image: ghcr.io/reinmengelberg/ffmpeg-api:latest   # pin to a sha-xxxxxxx tag for reproducible deploys
     restart: unless-stopped
     environment:

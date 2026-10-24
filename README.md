@@ -1,10 +1,14 @@
-# mp3-converter
+# ffmpeg-api
 
-Tiny internal HTTP service: POST any audio/video file, get an MP3 back. ffmpeg + Starlette, ~100 lines.
+Tiny internal HTTP service: POST any audio/video file, get it back converted. ffmpeg + Starlette.
 
 ## API
 
-`POST /mp3` — raw request body is the input file.
+All `POST` routes take the raw request body as the input file.
+
+### `POST /mp3`
+
+Shortcut for audio → MP3.
 
 | Query param | Default     | Notes                                   |
 |-------------|-------------|-----------------------------------------|
@@ -13,15 +17,49 @@ Tiny internal HTTP service: POST any audio/video file, get an MP3 back. ffmpeg +
 | `ac`        | `1`         | Channels: `1` mono, `2` stereo          |
 | `filename`  | `audio.mp3` | Sanitized; `.mp3` appended if missing   |
 
-Header `X-API-Key` is required when `API_KEY` is set.
+### `POST /convert`
 
-`GET /health` — always unauthenticated.
+General conversion. Every param is validated against a whitelist; nothing is passed to ffmpeg raw.
 
-Responses: `200` audio/mpeg · `400` bad params/empty body · `401` bad key · `413` too large · `422` ffmpeg failed (stderr tail in `detail`) · `504` timeout.
+| Query param | Notes |
+|-------------|-------|
+| `format`    | **Required.** `mp3` `wav` `flac` `ogg` `opus` `m4a` `aac` `mp4` `mov` `mkv` `webm` `gif` `jpg` `png` |
+| `vcodec`    | `libx264` `libx265` `libvpx` `libvpx-vp9` `libaom-av1` `libsvtav1` `mpeg4` `prores_ks` `gif` `mjpeg` `png` `copy` |
+| `acodec`    | `aac` `libmp3lame` `libopus` `libvorbis` `flac` `alac` `pcm_s16le` `pcm_s24le` `copy` |
+| `vb` / `ab` | Video / audio bitrate, e.g. `2M`, `128k` |
+| `crf`       | 0–63 |
+| `preset`    | `ultrafast` … `veryslow` |
+| `ar`        | Sample rate, 8000–192000 |
+| `ac`        | Channels, 1–8 |
+| `ss` / `t`  | Start offset / duration, seconds or `HH:MM:SS(.ms)` |
+| `scale`     | `W:H`, `-1`/`-2` keep aspect, e.g. `1280:-2` |
+| `fps`       | Frame rate, e.g. `10` |
+| `vn` / `an` | `1` drops video / audio |
+| `filename`  | Sanitized; extension appended if missing (default `output.<format>`) |
+
+Audio formats drop video automatically; `jpg`/`png` grab a single frame (use `ss` to pick it); `gif` uses a generated palette.
+
+### `POST /probe`
+
+Returns ffprobe's `format` + `streams` as JSON.
+
+### `GET /health`
+
+Always unauthenticated.
+
+Header `X-API-Key` is required on all other routes when `API_KEY` is set.
+
+Responses: `200` file (or JSON for `/probe`) · `400` bad params/empty body · `401` bad key · `413` too large · `422` ffmpeg failed (stderr tail in `detail`) · `504` timeout.
 
 ```bash
 curl -H "X-API-Key: $KEY" --data-binary @meeting.webm \
-  "http://mp3-converter:8080/mp3?filename=call.mp3" -o call.mp3
+  "http://ffmpeg-api:8080/mp3?filename=call.mp3" -o call.mp3
+
+curl -H "X-API-Key: $KEY" --data-binary @clip.mov \
+  "http://ffmpeg-api:8080/convert?format=mp4&vcodec=libx264&crf=23&scale=1280:-2" -o clip.mp4
+
+curl -H "X-API-Key: $KEY" --data-binary @meeting.webm \
+  "http://ffmpeg-api:8080/convert?format=wav&ar=16000&ac=1&ss=30&t=60" -o chunk.wav
 ```
 
 ## Env
