@@ -1,9 +1,9 @@
 services:
   ffmpeg-api:
-    image: ghcr.io/reinmengelberg/ffmpeg-api:latest   # pin to a sha-xxxxxxx tag for reproducible deploys
+    image: ghcr.io/reinmengelberg/ffmpeg-api:latest
     restart: unless-stopped
     environment:
-      - API_KEY=${SERVICE_PASSWORD_MP3}   # Coolify generates this; copy it into n8n's Header Auth credential
+      - API_KEY=${SERVICE_API_KEY}
       - MAX_BYTES=2147483648
       - FFMPEG_TIMEOUT_S=1800
     read_only: true
