@@ -1,6 +1,6 @@
 services:
   mp3-converter:
-    image: ghcr.io/<owner>/mp3-converter:latest   # pin to a sha-xxxxxxx tag for reproducible deploys
+    image: ghcr.io/reinmengelberg/ffmpeg-api:latest   # pin to a sha-xxxxxxx tag for reproducible deploys
     restart: unless-stopped
     environment:
       - API_KEY=${SERVICE_PASSWORD_MP3}   # Coolify generates this; copy it into n8n's Header Auth credential

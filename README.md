@@ -36,7 +36,7 @@ curl -H "X-API-Key: $KEY" --data-binary @meeting.webm \
 ## Build & deploy
 
 Pushes to `main` build `linux/amd64` + `linux/arm64` and push to
-`ghcr.io/<owner>/mp3-converter` with tags `latest` and `sha-<short>`.
+`ghcr.io/reinmengelberg/ffmpeg-api` with tags `latest` and `sha-<short>`.
 A weekly scheduled rebuild picks up ffmpeg/Alpine security fixes.
 
 Deploy with `docker-compose.yml` (Coolify: Service → Docker Compose Empty). No ports or domain; reach it over the internal network.
